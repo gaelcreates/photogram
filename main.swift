@@ -6,6 +6,9 @@ import AVKit
 import AVFoundation
 import UniformTypeIdentifiers
 
+// Jaune de la marque gaelcreates, en touche : bouton principal, sélection, interrupteurs, tête de lecture.
+let accent = Color(red: 1, green: 197 / 255, blue: 8 / 255)
+
 @main
 struct PhotogrammeApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var delegate
@@ -13,19 +16,29 @@ struct PhotogrammeApp: App {
         Window("Photogramme", id: "main") {
             RootView()
                 .environmentObject(Model.shared)
+                .tint(accent)
                 .frame(minWidth: 960, minHeight: 640)
         }
         .defaultSize(width: 1240, height: 800)
         .windowToolbarStyle(.unified)
-        .commands {
-            CommandGroup(replacing: .newItem) {
-                Button("Ouvrir…") { Model.shared.choose() }.keyboardShortcut("o")
-            }
-            CommandGroup(after: .newItem) {
-                Button("Exporter la photo") { Model.shared.capture() }
-                    .keyboardShortcut("e")
-                    .disabled(Model.shared.player == nil)
-            }
+        .commands { AppCommands(m: Model.shared) }
+    }
+}
+
+// Menus : observent le modèle pour s'activer dès qu'une vidéo est ouverte.
+struct AppCommands: Commands {
+    @ObservedObject var m: Model
+    var body: some Commands {
+        CommandGroup(replacing: .newItem) {
+            Button("Ouvrir…") { m.choose() }.keyboardShortcut("o")
+        }
+        CommandGroup(after: .newItem) {
+            Button("Exporter la photo") { m.capture() }
+                .keyboardShortcut("e")
+                .disabled(m.player == nil || m.busy)
+            Button("Copier la dernière photo") { m.copyLast() }
+                .keyboardShortcut("c", modifiers: [.command, .shift])
+                .disabled(m.lastSaved == nil)
         }
     }
 }
@@ -231,8 +244,11 @@ final class Model: ObservableObject {
         }
     }
 
+    // Dernière image lisible : une image avant la fin exacte du fichier.
+    var lastFrameTime: Double { max(0, duration - 1 / max(fps, 1)) }
+
     func seek(_ t: Double) {
-        time = min(max(0, t), duration)
+        time = min(max(0, t), lastFrameTime)
         player?.seek(to: CMTime(seconds: time, preferredTimescale: 600_000), toleranceBefore: .zero, toleranceAfter: .zero)
         if stillPreview { refreshStill() }
     }
@@ -294,7 +310,7 @@ final class Model: ObservableObject {
         busy = true
         message = nil
         player?.pause()
-        let t = time, f = fps, c = cropRect(), s = sharpest, r = ratio, fmt = format, dir = folder
+        let t = min(time, lastFrameTime), f = fps, c = cropRect(), s = sharpest, r = ratio, fmt = format, dir = folder
         Task {
             do {
                 let out = try await Model.render(asset: a, time: t, fps: f, crop: c, sharpest: s, source: src, ratio: r, format: fmt, dir: dir)
@@ -303,9 +319,20 @@ final class Model: ObservableObject {
                 showToast("Photo exportée")
             } catch {
                 message = "Export impossible : \(error.localizedDescription)"
+                showToast("Export impossible, voir le panneau de droite")
             }
             busy = false
         }
+    }
+
+    func copyLast() {
+        guard let u = lastSaved else { return }
+        let pb = NSPasteboard.general
+        pb.clearContents()
+        var items: [NSPasteboardWriting] = [u as NSURL]
+        if let img = NSImage(contentsOf: u) { items.insert(img, at: 0) }
+        pb.writeObjects(items)
+        showToast("Photo copiée")
     }
 
     func showToast(_ s: String) {
@@ -448,7 +475,9 @@ struct RootView: View {
             ToolbarItemGroup(placement: .primaryAction) {
                 if m.player != nil {
                     Button { m.capture() } label: {
-                        Label(m.busy ? "Export…" : "Exporter", systemImage: "camera.aperture").labelStyle(.titleAndIcon)
+                        Label(m.busy ? "Export…" : "Exporter", systemImage: "camera.aperture")
+                            .labelStyle(.titleAndIcon)
+                            .foregroundStyle(.black)
                     }
                     .buttonStyle(.borderedProminent)
                     .disabled(m.busy)
@@ -479,7 +508,8 @@ struct EmptyState: View {
                 .font(.title2.weight(.semibold))
             Text("MOV ou MP4. Le 4K est recommandé pour les formats verticaux.")
                 .foregroundStyle(.secondary)
-            Button("Ouvrir une vidéo…") { m.choose() }
+            Button { m.choose() } label: { Text("Ouvrir une vidéo…").foregroundStyle(.black) }
+                .buttonStyle(.borderedProminent)
                 .controlSize(.large)
                 .padding(.top, 6)
             if let msg = m.message { Text(msg).foregroundStyle(.red).padding(.top, 4) }
@@ -487,7 +517,7 @@ struct EmptyState: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(
             RoundedRectangle(cornerRadius: 18)
-                .strokeBorder(m.dropTargeted ? Color.accentColor : Color.secondary.opacity(0.25),
+                .strokeBorder(m.dropTargeted ? accent : Color.secondary.opacity(0.25),
                               style: StrokeStyle(lineWidth: m.dropTargeted ? 2 : 1.5, dash: [7, 6]))
                 .padding(24)
         )
@@ -537,7 +567,7 @@ struct Canvas: View {
                             .onEnded { _ in m.dragStart = nil; m.dragging = false }
                     )
                 if let t = m.toast {
-                    Label(t, systemImage: "checkmark.circle.fill")
+                    Label { Text(t) } icon: { Image(systemName: "checkmark.circle.fill").foregroundStyle(accent) }
                         .font(.callout.weight(.medium))
                         .padding(.horizontal, 14).padding(.vertical, 8)
                         .background(.regularMaterial, in: Capsule())
@@ -597,6 +627,7 @@ struct Transport: View {
                 Button { m.step(1) } label: { Image(systemName: "forward.frame.fill") }.help("Image suivante (→)")
             }
             .buttonStyle(.borderless)
+            .foregroundStyle(.primary)
             .font(.system(size: 14))
             Text(m.timecode)
                 .font(.system(size: 13, weight: .medium, design: .monospaced))
@@ -634,7 +665,7 @@ struct Filmstrip: View {
                 .clipShape(RoundedRectangle(cornerRadius: 6))
                 .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(Color.primary.opacity(0.12)))
                 RoundedRectangle(cornerRadius: 2)
-                    .fill(Color.white)
+                    .fill(accent)
                     .frame(width: 4, height: h + 8)
                     .shadow(color: .black.opacity(0.5), radius: 2)
                     .offset(x: min(max(0, x - 2), w - 4), y: 0)
@@ -687,7 +718,8 @@ struct Inspector: View {
                 }
                 LabeledContent("Dossier") {
                     Button(m.folder.lastPathComponent) { m.chooseFolder() }
-                        .buttonStyle(.link)
+                        .buttonStyle(.plain)
+                        .foregroundStyle(accent)
                         .help(m.folder.path)
                 }
             }
@@ -700,10 +732,13 @@ struct Inspector: View {
                             .frame(maxHeight: 180)
                             .clipShape(RoundedRectangle(cornerRadius: 6))
                             .frame(maxWidth: .infinity)
+                            .onDrag { NSItemProvider(contentsOf: saved) ?? NSItemProvider() }
+                            .help("Glisser la photo vers une autre app")
                     }
                     Text(saved.lastPathComponent).font(.caption).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
                     HStack {
                         Button("Afficher") { NSWorkspace.shared.activateFileViewerSelecting([saved]) }
+                        Button("Copier") { m.copyLast() }.help("Copier la photo (⇧⌘C)")
                         Spacer()
                         ShareLink(item: saved) { Label("Partager", systemImage: "square.and.arrow.up") }
                     }
@@ -727,7 +762,7 @@ struct RatioTile: View {
                 let v = ratio.value ?? 1.5
                 let bw: CGFloat = v >= 1 ? 26 : 26 * v, bh: CGFloat = v >= 1 ? 26 / v : 26
                 RoundedRectangle(cornerRadius: 2.5)
-                    .strokeBorder(selected ? Color.accentColor : Color.secondary, style: StrokeStyle(lineWidth: 1.5, dash: ratio == .original ? [3, 2] : []))
+                    .strokeBorder(selected ? accent : Color.secondary, style: StrokeStyle(lineWidth: 1.5, dash: ratio == .original ? [3, 2] : []))
                     .frame(width: bw, height: bh)
                     .frame(height: 30)
                 Text(ratio.label).font(.caption2.weight(.medium))
@@ -735,8 +770,8 @@ struct RatioTile: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 8)
-            .background(RoundedRectangle(cornerRadius: 8).fill(selected ? Color.accentColor.opacity(0.14) : Color.primary.opacity(0.04)))
-            .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(selected ? Color.accentColor : Color.clear, lineWidth: 1.5))
+            .background(RoundedRectangle(cornerRadius: 8).fill(selected ? accent.opacity(0.14) : Color.primary.opacity(0.04)))
+            .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(selected ? accent : Color.clear, lineWidth: 1.5))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

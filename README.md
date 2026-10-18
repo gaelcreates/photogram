@@ -20,7 +20,7 @@ Une capture d'écran enregistre l'aperçu réduit de ton logiciel de montage. Ph
 - Naviguer image par image, avec une frise de la vidéo.
 - Formats : original, story 9:16, portrait 4:5, carré 1:1, paysage 16:9. Le cadre se déplace à la souris et se resserre avec un curseur.
 - Export en JPEG, PNG ou HEIC, dans le dossier de ton choix (par défaut : Images › Photogramme).
-- Partage direct, par exemple en AirDrop vers ton iPhone.
+- Partage direct (par exemple en AirDrop vers ton iPhone), copie en un raccourci, ou glisser-déposer de la photo vers une autre app.
 - Alerte si la photo est trop petite pour une story nette.
 
 ## Installer
@@ -54,6 +54,7 @@ La première ligne n'est utile qu'une fois, si les outils d'Apple ne sont pas in
 | Reculer / avancer d'une seconde | ⇧← / ⇧→ |
 | Lecture / pause | Espace |
 | Exporter la photo | ⌘E |
+| Copier la dernière photo | ⇧⌘C |
 
 ## Pour des photos encore plus nettes
 
