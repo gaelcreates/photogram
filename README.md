@@ -1,6 +1,6 @@
-<p align="center"><img src="docs/icon.png" width="128" alt="Icône de Photogramme"></p>
+<p align="center"><img src="docs/icon.png" width="128" alt="Icône de Photogram"></p>
 
-<h1 align="center">Photogramme</h1>
+<h1 align="center">Photogram</h1>
 
 <p align="center">Une app Mac qui transforme n'importe quelle image d'une vidéo en photo, à la résolution d'origine, cadrée pour Instagram.</p>
 
@@ -8,7 +8,7 @@
 
 ## Pourquoi c'est plus net qu'une capture d'écran
 
-Une capture d'écran enregistre l'aperçu réduit de ton logiciel de montage. Photogramme lit l'image directement dans le fichier vidéo, à sa vraie résolution, puis la recadre au pixel près.
+Une capture d'écran enregistre l'aperçu réduit de ton logiciel de montage. Photogram lit l'image directement dans le fichier vidéo, à sa vraie résolution, puis la recadre au pixel près.
 
 - **L'image exacte** : celle que tu as choisie, pas une image voisine.
 - **La résolution native** : 3840 × 2160 pour une vidéo 4K, 1215 × 2160 une fois recadrée en story.
@@ -19,7 +19,7 @@ Une capture d'écran enregistre l'aperçu réduit de ton logiciel de montage. Ph
 - Glisser une vidéo dans la fenêtre ou sur l'icône (MOV, MP4).
 - Naviguer image par image, avec une frise de la vidéo.
 - Formats : original, story 9:16, portrait 4:5, carré 1:1, paysage 16:9. Le cadre se déplace à la souris et se resserre avec un curseur.
-- Export en JPEG, PNG ou HEIC, dans le dossier de ton choix (par défaut : Images › Photogramme).
+- Export en JPEG, PNG ou HEIC, dans le dossier de ton choix (par défaut : Images › Photogram).
 - Partage direct (par exemple en AirDrop vers ton iPhone), copie en un raccourci, ou glisser-déposer de la photo vers une autre app.
 - Alerte si la photo est trop petite pour une story nette.
 
@@ -30,17 +30,17 @@ Il faut un Mac sous macOS 14 ou plus récent. Xcode n'est pas nécessaire.
 **Avec Claude Code** : colle ce prompt.
 
 ```
-Installe Photogramme depuis https://github.com/gaelcreates/photogramme : clone le dépôt, lance ./build.sh, puis ouvre l'app. Si les outils de développement d'Apple manquent, dis-moi de lancer xcode-select --install et attends que je te confirme.
+Installe Photogram depuis https://github.com/gaelcreates/photogram : clone le dépôt, lance ./build.sh, puis ouvre l'app. Si les outils de développement d'Apple manquent, dis-moi de lancer xcode-select --install et attends que je te confirme.
 ```
 
 **Dans le Terminal** :
 
 ```bash
 xcode-select --install
-git clone https://github.com/gaelcreates/photogramme.git
-cd photogramme
+git clone https://github.com/gaelcreates/photogram.git
+cd photogram
 ./build.sh
-open ~/Applications/Photogramme.app
+open ~/Applications/Photogram.app
 ```
 
 La première ligne n'est utile qu'une fois, si les outils d'Apple ne sont pas installés. L'app est compilée sur ton Mac : elle s'ouvre sans l'alerte des apps téléchargées.
@@ -72,7 +72,7 @@ Un seul fichier SwiftUI (`main.swift`), compilé avec `swiftc`. L'image est lue 
 Mode test en ligne de commande :
 
 ```bash
-~/Applications/Photogramme.app/Contents/MacOS/Photogramme --test video.mp4 1.5 "9:16" dossier_de_sortie
+~/Applications/Photogram.app/Contents/MacOS/Photogram --test video.mp4 1.5 "9:16" dossier_de_sortie
 ```
 
 ## Licence

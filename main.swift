@@ -1,4 +1,4 @@
-// Photogramme : sortir une photo en pleine qualité d'une vidéo, cadrée au format voulu.
+// Photogram : sortir une photo en pleine qualité d'une vidéo, cadrée au format voulu.
 // L'image est lue dans le fichier par AVFoundation (image exacte, résolution native), jamais dans l'aperçu.
 // Compilation : voir build.sh (swiftc, sans Xcode).
 import SwiftUI
@@ -10,10 +10,10 @@ import UniformTypeIdentifiers
 let accent = Color(red: 1, green: 197 / 255, blue: 8 / 255)
 
 @main
-struct PhotogrammeApp: App {
+struct PhotogramApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var delegate
     var body: some Scene {
-        Window("Photogramme", id: "main") {
+        Window("Photogram", id: "main") {
             RootView()
                 .environmentObject(Model.shared)
                 .tint(accent)
@@ -46,7 +46,7 @@ struct AppCommands: Commands {
 final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         let a = CommandLine.arguments
-        // Mode test : Photogramme --test video.mp4 secondes format dossier [exact]
+        // Mode test : Photogram --test video.mp4 secondes format dossier [exact]
         if a.count >= 6, a[1] == "--test" {
             let ratio = Ratio(rawValue: a[4]) ?? .story
             Task {
@@ -58,7 +58,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             return
         }
-        // Mode capture d'écran de l'interface : Photogramme --snapshot video.mp4 sortie.png
+        // Mode capture d'écran de l'interface : Photogram --snapshot video.mp4 sortie.png
         if a.count >= 4, a[1] == "--snapshot" {
             Task { @MainActor in
                 Model.shared.stillPreview = true
@@ -175,11 +175,11 @@ final class Model: ObservableObject {
         ratio = Ratio(rawValue: d.string(forKey: "ratio") ?? "") ?? .original
         sharpest = d.object(forKey: "sharpest") as? Bool ?? true
         format = OutFormat(rawValue: d.string(forKey: "format") ?? "") ?? .jpeg
-        let def = FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask)[0].appendingPathComponent("Photogramme", isDirectory: true)
+        let def = FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask)[0].appendingPathComponent("Photogram", isDirectory: true)
         folder = d.string(forKey: "folder").map { URL(fileURLWithPath: $0, isDirectory: true) } ?? def
     }
 
-    var videoName: String { url?.deletingPathExtension().lastPathComponent ?? "Photogramme" }
+    var videoName: String { url?.deletingPathExtension().lastPathComponent ?? "Photogram" }
     var videoInfo: String {
         guard size.width > 0 else { return "" }
         let fr = fps.rounded() == fps ? String(Int(fps)) : String(format: "%.2f", fps)
@@ -365,7 +365,7 @@ final class Model: ObservableObject {
     }
 
     nonisolated static func fail(_ s: String) -> NSError {
-        NSError(domain: "Photogramme", code: 1, userInfo: [NSLocalizedDescriptionKey: s])
+        NSError(domain: "Photogram", code: 1, userInfo: [NSLocalizedDescriptionKey: s])
     }
 
     // Lit l'image exacte (et ses 2 voisines de chaque côté si demandé), garde la plus nette, recadre, enregistre.
