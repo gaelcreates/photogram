@@ -537,6 +537,8 @@ struct Canvas: View {
                     Image(decorative: s, scale: 1).resizable().frame(width: vr.width, height: vr.height).offset(x: vr.minX, y: vr.minY)
                 } else {
                     PlayerView(player: player)
+                        .frame(width: vr.width, height: vr.height)
+                        .offset(x: vr.minX, y: vr.minY)
                 }
                 Path { p in p.addRect(vr); p.addRect(cr) }
                     .fill(Color.black.opacity(0.58), style: FillStyle(eoFill: true))
