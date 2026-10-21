@@ -1,6 +1,4 @@
-<p align="center"><img src="docs/icon.png" width="128" alt="Icône de Photogram"></p>
-
-<h1 align="center">Photogram</h1>
+<p align="center"><img src="docs/banner.png" alt="Photogram : une image de ta vidéo, en photo nette"></p>
 
 <p align="center">Une app Mac qui transforme n'importe quelle image d'une vidéo en photo, à la résolution d'origine, cadrée pour Instagram.</p>
 
