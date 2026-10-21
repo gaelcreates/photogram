@@ -9,7 +9,7 @@ command -v swiftc >/dev/null || { echo "Installe d'abord les outils d'Apple : xc
 T=$(mktemp -d)
 trap 'rm -rf "$T"' EXIT
 echo "Compilation…"
-swiftc -O -swift-version 5 -parse-as-library main.swift -o "$T/Photogram"
+swiftc -O -swift-version 5 -suppress-warnings -parse-as-library main.swift -o "$T/Photogram"
 echo "Icône…"
 swift icon.swift assets/logo.png "$T/icon.png"
 mkdir "$T/AppIcon.iconset"
